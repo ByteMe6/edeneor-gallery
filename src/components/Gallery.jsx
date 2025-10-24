@@ -1,10 +1,12 @@
 import Hero from "./Hero";
+import Top from "./Top";
 
 function Gallery() {
     return (
         <>
             <Hero />
-            1111
+            <Top />
+            1
         </>
     );
 }
