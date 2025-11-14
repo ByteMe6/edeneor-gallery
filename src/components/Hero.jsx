@@ -1,7 +1,7 @@
 function Hero() {
   return (
     <div className="heroContainer flex flex-col items-center justify-center min-h-screen">
-      {/* Десктопна версія */}
+
       <div className="desktop-hero-wrapper hidden sm:block">
         <img
           src="/HeroH1.png"
@@ -15,7 +15,7 @@ function Hero() {
         </div>
       </div>
 
-      {/* Мобільна версія */}
+
       <div className="mobile-hero-wrapper flex flex-col items-center sm:hidden">
         <img
           src="/HeroH1.png"

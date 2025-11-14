@@ -6,7 +6,6 @@ function Gallery() {
         <>
             <Hero />
             <Top />
-            1
         </>
     );
 }

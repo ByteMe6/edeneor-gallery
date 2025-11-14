@@ -1,95 +1,33 @@
 import { useState, useEffect } from "react";
 
-const STATIC_DATA = {
-  seasons: [
-    {
-      season: 13,
-      entries: [
-        {
-          id: "e001",
-          rank: 1,
-          displayName: "Кристальный Дворец",
-          description: "Величественное сооружение из кварца и стекла. Безоговорочный победитель сезона.",
-          embeds: [
-            { url: "https://picsum.photos/600/400?random=1", description: "Фасад" },
-            { url: "https://picsum.photos/600/400?random=2", description: "Интерьер" },
-            { url: "https://picsum.photos/600/400?random=3", description: "Вид с воздуха" },
-          ],
-          authors: [
-            { username: "Stroim_Bystro", url: "https://picsum.photos/100/100?random=11" },
-            { username: "MegaArchitect", url: "https://picsum.photos/100/100?random=12" },
-          ],
-        },
-        {
-          id: "e002",
-          rank: 2,
-          displayName: "Подводный Город Атлантис",
-          description: "Удивительный город, полностью построенный под водой с использованием уникальных строительных решений.",
-          embeds: [
-            { url: "https://picsum.photos/600/400?random=4", description: "Купол" },
-            { url: "https://picsum.photos/600/400?random=5", description: "Внутри" },
-          ],
-          authors: [
-            { username: "DeepDiver", url: "https://picsum.photos/100/100?random=13" },
-          ],
-        },
-        {
-          id: "e003",
-          rank: 3,
-          displayName: "Воздушный Замок",
-          description: "Элегантная крепость, парящая в облаках, построенная на специальной платформе.",
-          embeds: [
-            { url: "https://picsum.photos/600/400?random=6", description: "Внешний вид" },
-            { url: "https://picsum.photos/600/400?random=7", description: "Мост" },
-            { url: "https://picsum.photos/600/400?random=8", description: "Закатный вид" },
-          ],
-          authors: [
-            { username: "AirBuilder", url: "https://picsum.photos/100/100?random=14" },
-          ],
-        },
-        {
-            id: "e004",
-            rank: 4,
-            displayName: "Башня Проклятых",
-            description: "Мрачное, но впечатляющее готическое строение.",
-            embeds: [
-              { url: "https://picsum.photos/600/400?random=9", description: "Башня" },
-            ],
-            authors: [
-              { username: "GothMaster", url: "https://picsum.photos/100/100?random=15" },
-            ],
-          },
-      ],
-    },
-    {
-        season: 12,
-        entries: [
-          {
-            id: "e101",
-            rank: 1,
-            displayName: "Имперская Гавань",
-            description: "Победитель прошлого сезона. Комплекс зданий в стиле древней империи.",
-            embeds: [
-              { url: "https://picsum.photos/600/400?random=10", description: "Вход" },
-            ],
-            authors: [
-              { username: "OldSchool", url: "https://picsum.photos/100/100?random=16" },
-            ],
-          },
-        ],
-      },
-  ],
-};
-
 function Top() {
-  const [data, setData] = useState(STATIC_DATA); 
-  const [loading, setLoading] = useState(false); 
+  const [data, setData] = useState(null); 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  const initialSeason = STATIC_DATA.seasons[0]?.season || 13;
-  const [selectedSeason, setSelectedSeason] = useState(initialSeason);
-  
+  const [selectedSeason, setSelectedSeason] = useState(null);
   const [currentBuilding, setCurrentBuilding] = useState(0);
   const [currentImage, setCurrentImage] = useState(0);
+
+  useEffect(() => {
+    fetch('/api/Gallery')
+      .then(res => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.json();
+      })
+      .then(apiData => {
+        setData(apiData);
+        if (apiData?.seasons && apiData.seasons.length > 0) {
+          setSelectedSeason(apiData.seasons[0].season);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching gallery data:', err);
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
 
   useEffect(() => {
     setCurrentBuilding(0);
@@ -104,6 +42,14 @@ function Top() {
     return (
       <div className="w-full py-20 text-center text-white">
         <p className="text-xl">Загрузка...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full py-20 text-center text-white">
+        <p className="text-xl text-red-500">Ошибка загрузки данных: {error}</p>
       </div>
     );
   }
@@ -150,7 +96,10 @@ function Top() {
                   : "bg-white text-[#5096fe] hover:bg-gray-100" 
               }`}
             >
+              <span className="text-black">
               {s.season} сезон
+
+              </span>
             </button>
           ))}
         </div>
@@ -204,7 +153,7 @@ function Top() {
             {images.length > 1 && (
               <button
                 onClick={handlePrevImage}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-[#5096fe] hover:bg-[#5096fe]/80 text-[#5096fe] p-2 rounded-full transition-all"
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-[#5096fe] hover:bg-[#5096fe]/80 text-black p-2 rounded-full transition-all"
               >
                 <svg
                   className="w-8 h-8"
@@ -223,7 +172,7 @@ function Top() {
             )}
 
             <img
-              src={images[currentImage] || "/placeholder.jpg"}
+              src={images[currentImage]}
               alt={
                 building.embeds?.[currentImage]?.description ||
                 building.displayName
@@ -234,7 +183,7 @@ function Top() {
             {images.length > 1 && (
               <button
                 onClick={handleNextImage}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-[#5096fe] hover:bg-[#5096fe]/80 text-[#5096fe] p-2 rounded-full transition-all"
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-[#5096fe] hover:bg-[#5096fe]/80 text-black p-2 rounded-full transition-all"
               >
                 <svg
                   className="w-8 h-8"
@@ -308,10 +257,9 @@ function Top() {
           <div className="flex justify-center gap-4 py-4 bg-[#0a0d1f]">
             {sortedEntries.map((entry, idx) => (
               <button
-                // style="margin: 0; padding: 0; border: none; background: none; cursor: pointer;"
                 key={entry.id}
                 onClick={() => setCurrentBuilding(idx)}
-                className={`w-3 h-3 rounded-full transition-all color-[#5096fe] bg-red ${
+                className={`w-3 h-3 rounded-full transition-all ${
                   currentBuilding === idx
                     ? "bg-[#5096fe] scale-125"
                     : "bg-white hover:bg-gray-200"
